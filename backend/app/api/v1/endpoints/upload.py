@@ -16,6 +16,6 @@ async def upload_lab(file: UploadFile = File(...)):
     if not file:
         raise HTTPException(status_code=400, detail="File required")
     text = await extract_text_from_upload(file)
-    # run lab summarization pipeline
-    analysis = ai_service.summarize_lab_text(text)
+    # run lab summarization pipeline using ClinicalBERT
+    analysis = await ai_service.summarize_lab_text(text)
     return UploadResponse(parsed_text=analysis.get("parsed_text", ""), ai_notes=analysis.get("summary", ""))

@@ -40,11 +40,33 @@ It is designed to be **user-friendly for all generations**, including older adul
 - Integrations with Hugging Face APIs  
 - Firebase for Authentication and Database  
 
-**AI Models (from Hugging Face):**
-1. 🩻 **[BioBERT](https://huggingface.co/dmis-lab/biobert-base-cased-v1.1)** – For understanding medical terms and symptom descriptions.  
-2. 💊 **[ClinicalBERT](https://huggingface.co/emilyalsentzer/Bio_ClinicalBERT)** – For analyzing clinical notes and user inputs.  
-3. 🧬 **[MedAlpaca](https://huggingface.co/medalpaca/medalpaca-7b)** – For generating conversational medical advice.  
-4. 🩸 **[Disease Prediction Model](https://huggingface.co/models?search=disease+prediction)** – For suggesting possible conditions based on symptoms.  
+**AI Models (via Hugging Face Inference API):**
+
+All models are accessed remotely through Hugging Face's Inference API - **no local downloads required**:
+
+1. 🩻 **[BioBERT](https://huggingface.co/dmis-lab/biobert-base-cased-v1.1)** (`dmis-lab/biobert-base-cased-v1.1`)  
+   - **Purpose:** Question answering and symptom understanding
+   - **Endpoint:** `/api/chat` with BioBERT routing for medical Q&A
+
+2. 💊 **[ClinicalBERT](https://huggingface.co/emilyalsentzer/Bio_ClinicalBERT)** (`emilyalsentzer/Bio_ClinicalBERT`)  
+   - **Purpose:** Medical text classification and lab result analysis
+   - **Endpoint:** Used for `/api/upload-lab` summarization
+
+3. 🧬 **[MedAlpaca 13B](https://huggingface.co/medalpaca/medalpaca-13b)** (`medalpaca/medalpaca-13b`)  
+   - **Purpose:** Conversational medical advice and diagnosis suggestions
+   - **Endpoint:** Primary model for `/api/chat` consultations
+
+4. 🩸 **[BioGPT-Large](https://huggingface.co/microsoft/BioGPT-Large)** (`microsoft/BioGPT-Large`)  
+   - **Purpose:** Disease prediction and general medical text generation
+   - **Endpoint:** Fallback model for various medical queries
+
+### 🔑 **How It Works:**
+- Models run on Hugging Face's cloud infrastructure
+- Requires `HUGGINGFACE_API_KEY` environment variable
+- Get your free API key: https://huggingface.co/settings/tokens
+  - ⚠️ **IMPORTANT:** Create token with **"Write"** access (not just "Read")
+- First request may take ~20 seconds (model loading)
+- Subsequent requests are fast (~2-5 seconds)  
 
 ---
 

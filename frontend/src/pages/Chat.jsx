@@ -92,7 +92,21 @@ export default function Chat() {
       }
       
       const { data } = await api.post('/chat', payload)
-      setMessages((m) => [...m, { role: 'ai', content: data.reply }])
+      
+      // Detect which AI model was used based on confidence
+      let modelName = 'MedAI'
+      if (data.confidence >= 0.9) {
+        modelName = 'Llama 3.1' // Groq returns 0.9 confidence
+      } else if (data.confidence >= 0.75) {
+        modelName = 'MedAI Templates' // Template system
+      }
+      
+      setMessages((m) => [...m, { 
+        role: 'ai', 
+        content: data.reply,
+        confidence: data.confidence,
+        model: modelName
+      }])
       setShowDoctorBtn(Boolean(data.ai_recommend_doctor))
     } catch (e) {
       console.error('Chat API error:', e)
@@ -162,6 +176,20 @@ export default function Chat() {
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}>
                     <div className="whitespace-pre-wrap">{m.content}</div>
+                    {m.role === 'ai' && m.confidence !== undefined && (
+                      <div className="mt-2 pt-2 border-t border-gray-200 flex items-center gap-2 text-xs">
+                        <span className="text-gray-500">🤖 {m.model || 'AI'}</span>
+                        <span className={`px-2 py-0.5 rounded-full ${
+                          m.confidence >= 0.7 
+                            ? 'bg-green-100 text-green-700' 
+                            : m.confidence >= 0.4
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {(m.confidence * 100).toFixed(0)}% confident
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

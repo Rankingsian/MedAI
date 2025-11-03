@@ -116,9 +116,12 @@ export default function Upload() {
                   exit={{ opacity: 0 }}
                   className="space-y-4"
                 >
-                  <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto" />
+                  <Loader className="w-12 h-12 text-blue-600 mx-auto animate-spin" />
                   <p className="text-lg font-semibold text-gray-900">Analyzing your report...</p>
-                  <p className="text-sm text-gray-500">Our AI is processing your document</p>
+                  <p className="text-sm text-gray-500">MedAI is processing your document</p>
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                    <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded">🤖 Medical AI</span>
+                  </div>
                 </motion.div>
               )}
               
@@ -185,16 +188,21 @@ export default function Upload() {
 
               {aiNotes && (
                 <div className="bg-green-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                    AI Interpretation
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                      AI Interpretation
+                    </h3>
+                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+                      🤖 MedAI
+                    </span>
+                  </div>
                   <div className="bg-white rounded-lg p-4">
                     <p className="text-sm text-gray-700 leading-relaxed">{aiNotes}</p>
                   </div>
                   <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                     <p className="text-xs text-amber-800">
-                      <strong>Note:</strong> This is an AI-generated interpretation. Please consult with a healthcare professional for medical advice.
+                      <strong>Note:</strong> This is an AI-generated interpretation powered by MedAI. Please consult with a healthcare professional for medical advice.
                     </p>
                   </div>
                 </div>
