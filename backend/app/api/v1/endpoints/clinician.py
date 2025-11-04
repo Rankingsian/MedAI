@@ -252,23 +252,19 @@ async def generate_consultation_summary(consultation_id: str, payload: Consultat
 
         prompt += "\n\nProvide:\n1. Brief summary\n2. Key concerns\n3. Suggested follow-up actions"
 
-        # Use Groq if available, otherwise fallback to templates/BioGPT
+        # Use AI service to generate summary
         try:
-            if groq_client:
-                ai_result = await ai_service.query_groq_llama(
-                    prompt,
-                    system_prompt=(
-                        "You are a clinical decision support assistant summarizing patient consultations for clinicians. "
-                        "Be concise, structured, and include risk considerations."
-                    )
-                )
-            else:
-                ai_result = await ai_service.query_biogpt(prompt)
-        except Exception:
-            ai_result = ai_service._generate_template_response(prompt)
-
-        summary_text = ai_result.get("output", "Summary unavailable")
-        confidence = ai_result.get("confidence", 0.6)
+            ai_result = await ai_service.process_chat(
+                prompt,
+                triage=None,
+                consultation_id=None
+            )
+            summary_text = ai_result.get("reply", "Summary unavailable")
+            confidence = ai_result.get("confidence", 0.6)
+        except Exception as e:
+            log.error(f"AI summary generation failed: {e}")
+            summary_text = "Unable to generate AI summary at this time."
+            confidence = 0.0
 
         # Basic recommendation extraction (bullets or numbered list)
         recommendations = []
