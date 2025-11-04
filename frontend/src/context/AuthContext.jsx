@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [userRole, setUserRole] = useState(null)
+  const [profileComplete, setProfileComplete] = useState(true) // Default to true for non-clinicians
 
   async function signup(email, password, name, role = 'patient') {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -39,7 +40,7 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password)
   }
 
-  async function loginWithGoogle() {
+  async function loginWithGoogle(role = 'patient') {
     const provider = new GoogleAuthProvider()
     const result = await signInWithPopup(auth, provider)
     
@@ -49,9 +50,21 @@ export function AuthProvider({ children }) {
         uid: result.user.uid,
         email: result.user.email,
         name: result.user.displayName,
-        role: 'patient',
-        createdAt: new Date().toISOString()
+        role: role,
+        createdAt: new Date().toISOString(),
+        profileComplete: role === 'clinician' ? false : true
       })
+    }
+
+    // If user is a clinician, check if they have completed their profile
+    if (role === 'clinician' || (userDoc.exists() && userDoc.data().role === 'clinician')) {
+      try {
+        const clinicianDoc = await getDoc(doc(db, 'clinicians', result.user.uid))
+        setProfileComplete(clinicianDoc.exists())
+      } catch (error) {
+        console.error('Error checking clinician profile:', error)
+        setProfileComplete(false)
+      }
     }
     
     return result
@@ -75,10 +88,19 @@ export function AuthProvider({ children }) {
           try {
             const userDoc = await getDoc(doc(db, 'users', user.uid))
             if (userDoc.exists()) {
-              setUserRole(userDoc.data().role)
+              const userData = userDoc.data()
+              setUserRole(userData.role)
+              
+              // Check profile completion for clinicians
+              if (userData.role === 'clinician') {
+                const clinicianDoc = await getDoc(doc(db, 'clinicians', user.uid))
+                setProfileComplete(clinicianDoc.exists())
+              } else {
+                setProfileComplete(true)
+              }
             }
           } catch (error) {
-            console.error('Error fetching user role:', error)
+            console.error('Error fetching user data:', error)
           }
         } else {
           setUserRole(null)
@@ -104,7 +126,8 @@ export function AuthProvider({ children }) {
     login,
     loginWithGoogle,
     logout,
-    loading
+    loading,
+    profileComplete
   }
 
   return (

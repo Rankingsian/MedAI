@@ -25,7 +25,7 @@ export default function Auth() {
       } else {
         await signup(email, password, name)
       }
-      navigate('/home')
+      navigate('/dashboard')
     } catch (err) {
       console.error('Authentication error:', err)
       // Provide user-friendly error messages

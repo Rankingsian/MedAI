@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+textarea,
+select {
+  font-family: inherit;
+  background-color: #ffffff;
+}
+
 :root {
   color-scheme: light dark;
 }

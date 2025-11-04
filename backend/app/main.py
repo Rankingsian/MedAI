@@ -1,6 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import chat, upload, summarize, review, recommendations, extract_meds
+from app.api.v1.endpoints import (
+    chat,
+    upload,
+    summarize,
+    review,
+    recommendations,
+    extract_meds,
+    history,
+    clinician,
+    consultation_requests,
+)
 
 app = FastAPI(title="MedAI API")
 
@@ -18,6 +28,9 @@ app.include_router(summarize.router, prefix="/api")
 app.include_router(review.router, prefix="/api")
 app.include_router(recommendations.router, prefix="/api")
 app.include_router(extract_meds.router, prefix="/api")
+app.include_router(history.router, prefix="/api")
+app.include_router(clinician.router, prefix="/api")
+app.include_router(consultation_requests.router, prefix="/api")
 
 @app.get("/")
 def health():

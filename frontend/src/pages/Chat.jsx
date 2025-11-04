@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 
 export default function Chat() {
   const [messages, setMessages] = useState([])
@@ -10,8 +11,10 @@ export default function Chat() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showDoctorBtn, setShowDoctorBtn] = useState(false)
+  const [consultationId, setConsultationId] = useState(null)
   const { state } = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   
   // Safely handle speech recognition (may not be supported in all browsers)
   let listening = false
@@ -72,8 +75,17 @@ export default function Chat() {
     
     try {
       const triage = state?.triage
+      
+      // Generate consultation ID on first message
+      if (!consultationId) {
+        const newId = `consultation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        setConsultationId(newId)
+      }
+      
       const payload = {
         message: userMsg.content,
+        user_id: user?.uid, // Add authenticated user ID
+        consultation_id: consultationId, // Link messages to same consultation
         triage: triage
           ? {
               age: triage.age ? Number(triage.age) : undefined,

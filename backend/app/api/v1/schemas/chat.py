@@ -14,6 +14,7 @@ class TriageData(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
+    user_id: Optional[str] = None  # Firebase UID of the user
     consultation_id: Optional[str] = None
     triage: Optional[TriageData] = None
 
