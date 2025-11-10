@@ -33,7 +33,7 @@ export default function History() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12">
       <div className="max-w-6xl mx-auto px-4">
-        <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
+        <Link to="/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>

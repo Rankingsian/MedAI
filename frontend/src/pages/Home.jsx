@@ -12,7 +12,8 @@ import {
   Settings,
   ChevronRight,
   Calendar,
-  Clock
+  Clock,
+  UserCheck
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -76,7 +77,7 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <Link to="/home" className="flex items-center space-x-2">
+            <Link to="/dashboard" className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
@@ -112,23 +113,41 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* Primary Action - Start Consultation */}
-          <motion.div variants={itemVariants}>
+          {/* Primary Actions - Start Consultation & Consult Doctor */}
+          <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <button
               onClick={() => navigate('/triage')}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] group"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl p-6 lg:p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Stethoscope className="w-8 h-8 text-white" />
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <Stethoscope className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-2xl font-bold mb-1">Start New Consultation</h2>
-                    <p className="text-blue-100">Get personalized health guidance from our AI</p>
+                    <h2 className="text-xl lg:text-2xl font-bold mb-1">AI Consultation</h2>
+                    <p className="text-blue-100 text-sm lg:text-base">Get instant AI health guidance</p>
                   </div>
                 </div>
-                <ChevronRight className="w-8 h-8 text-white group-hover:translate-x-2 transition-transform" />
+                <ChevronRight className="w-6 h-6 lg:w-8 lg:h-8 text-white group-hover:translate-x-2 transition-transform" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate('/request-doctor')}
+              className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white rounded-2xl p-6 lg:p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <UserCheck className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-xl lg:text-2xl font-bold mb-1">Consult a Doctor</h2>
+                    <p className="text-teal-100 text-sm lg:text-base">Request human clinician review</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-6 h-6 lg:w-8 lg:h-8 text-white group-hover:translate-x-2 transition-transform" />
               </div>
             </button>
           </motion.div>

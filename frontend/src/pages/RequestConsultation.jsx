@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Stethoscope, MessageSquare, AlertTriangle, Send, ArrowLeft, Loader } from 'lucide-react'
+import { Stethoscope, MessageSquare, AlertTriangle, Send, ArrowLeft, Loader, Video } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api/client'
+import { videoCallApi } from '../api/videoCallApi'
 
 const urgencyOptions = [
   { value: 'low', label: 'Low (routine follow-up)' },
@@ -32,6 +33,7 @@ export default function RequestConsultation() {
   const [loadingRequests, setLoadingRequests] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [videoCallsMap, setVideoCallsMap] = useState({})
 
   const fetchRequests = async () => {
     if (!user) return
@@ -39,6 +41,22 @@ export default function RequestConsultation() {
       setLoadingRequests(true)
       const { data } = await api.get(`/consultation/request/user/${user.uid}`)
       setRequests(data)
+      
+      // Fetch video calls for assigned/in_progress requests
+      const videoCallsData = {}
+      for (const request of data) {
+        if (request.status === 'assigned' || request.status === 'in_progress') {
+          try {
+            const videoCall = await videoCallApi.getVideoCallByRequest(request.request_id)
+            if (videoCall) {
+              videoCallsData[request.request_id] = videoCall
+            }
+          } catch (err) {
+            console.log('No video call for request:', request.request_id)
+          }
+        }
+      }
+      setVideoCallsMap(videoCallsData)
     } catch (err) {
       console.error('Failed to load requests:', err)
       setError('Failed to load your consultation requests. Please try again later.')
@@ -246,31 +264,52 @@ export default function RequestConsultation() {
               </div>
             ) : (
               <div className="space-y-4">
-                {requests.map((request) => (
-                  <div key={request.request_id} className="border border-gray-100 rounded-xl p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">{request.summary}</p>
-                        {request.details && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            {request.details.length > 120
-                              ? `${request.details.substring(0, 120)}...`
-                              : request.details}
-                          </p>
-                        )}
+                {requests.map((request) => {
+                  const videoCall = videoCallsMap[request.request_id]
+                  return (
+                    <div key={request.request_id} className="border border-gray-100 rounded-xl p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-900">{request.summary}</p>
+                          {request.details && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {request.details.length > 120
+                                ? `${request.details.substring(0, 120)}...`
+                                : request.details}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[request.status] || 'bg-gray-100 text-gray-600'}`}>
+                          {request.status.replace('_', ' ')}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[request.status] || 'bg-gray-100 text-gray-600'}`}>
-                        {request.status.replace('_', ' ')}
-                      </span>
+                      <div className="mt-3 text-xs text-gray-500 flex items-center justify-between">
+                        <span>
+                          Submitted {new Date(request.created_at).toLocaleString()}
+                        </span>
+                        <span className="capitalize">Urgency: {request.urgency}</span>
+                      </div>
+                      
+                      {/* Video Call Button */}
+                      {videoCall && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <button
+                            onClick={() => navigate(`/video-call/${videoCall.call_id}?role=patient`)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                          >
+                            <Video className="w-4 h-4" />
+                            {videoCall.status === 'scheduled' ? 'Join Video Call' : 'Rejoin Call'}
+                          </button>
+                          {videoCall.scheduled_time && (
+                            <p className="text-xs text-gray-500 mt-2 text-center">
+                              Scheduled: {new Date(videoCall.scheduled_time).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="mt-3 text-xs text-gray-500 flex items-center justify-between">
-                      <span>
-                        Submitted {new Date(request.created_at).toLocaleString()}
-                      </span>
-                      <span className="capitalize">Urgency: {request.urgency}</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </motion.div>

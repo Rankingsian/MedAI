@@ -17,6 +17,8 @@ const ClinicianPortal = lazy(() => import('./pages/ClinicianPortal.jsx'))
 const ClinicianDashboard = lazy(() => import('./pages/ClinicianDashboard.jsx'))
 const ClinicianPatient = lazy(() => import('./pages/ClinicianPatient.jsx'))
 import RequestConsultation from './pages/RequestConsultation.jsx'
+import ConsultationDetail from './pages/ConsultationDetail.jsx'
+import VideoCallPage from './pages/VideoCallPage.jsx'
 import FAQ from './pages/FAQ.jsx'
 import Privacy from './pages/Privacy.jsx'
 import Disclaimer from './pages/Disclaimer.jsx'
@@ -58,6 +60,7 @@ function AppRoutes() {
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+          <Route path="/consultation/:consultation_id" element={<ProtectedRoute><ConsultationDetail /></ProtectedRoute>} />
           <Route path="/doctor" element={<ProtectedRoute requireRole="doctor"><DoctorDashboard /></ProtectedRoute>} />
           <Route path="/request-doctor" element={<ProtectedRoute><RequestConsultation /></ProtectedRoute>} />
           <Route path="/clinician" element={<Suspense fallback={<div>Loading...</div>}><ClinicianPortal /></Suspense>} />
@@ -82,6 +85,7 @@ function AppRoutes() {
             }
           />
           <Route path="/clinician/settings" element={<ProtectedRoute requireRole="clinician"><ClinicianSettings /></ProtectedRoute>} />
+          <Route path="/video-call/:callId" element={<ProtectedRoute><VideoCallPage /></ProtectedRoute>} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/disclaimer" element={<Disclaimer />} />
@@ -93,7 +97,7 @@ function AppRoutes() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <Link to="/home" className="text-xl font-bold mb-4 block">MedAI</Link>
+              <Link to="/dashboard" className="text-xl font-bold mb-4 block">MedAI</Link>
               <p className="text-gray-400 text-sm">
                 Your trusted AI health companion with professional medical oversight.
               </p>
