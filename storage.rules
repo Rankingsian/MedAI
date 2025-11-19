@@ -1,0 +1,95 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the file
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is a clinician
+    function isClinician() {
+      return isAuthenticated() && 
+             firestore.exists(/databases/(default)/documents/clinicians/$(request.auth.uid));
+    }
+    
+    // Helper function to check if user is a doctor via users collection
+    function isDoctor() {
+      return isAuthenticated() && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+    
+    // ==========================================================================
+    // Lab Reports Storage - Patient Lab Result Files
+    // ==========================================================================
+    // Path format: lab_reports/{userId}/{fileName}
+    match /lab_reports/{userId}/{fileName} {
+      // Users can read their own lab reports
+      // Clinicians and doctors can read all lab reports
+      allow read: if isOwner(userId) || isClinician() || isDoctor();
+      
+      // Users can only upload to their own folder
+      // File size limit: 10MB
+      // Allowed types: PDF, images (JPEG, PNG), and common medical formats
+      allow write: if isOwner(userId) && 
+                      request.resource.size < 10 * 1024 * 1024 &&
+                      (
+                        request.resource.contentType.matches('image/.*') ||
+                        request.resource.contentType == 'application/pdf' ||
+                        request.resource.contentType == 'application/vnd.openxmlformats-officedocument.*' ||
+                        request.resource.contentType == 'application/msword'
+                      );
+      
+      // Users can delete their own lab reports
+      allow delete: if isOwner(userId);
+    }
+    
+    // ==========================================================================
+    // Profile Images (Optional) - User Profile Pictures
+    // ==========================================================================
+    // Path format: profile_images/{userId}/{fileName}
+    match /profile_images/{userId}/{fileName} {
+      // Anyone authenticated can read profile images (for display in UI)
+      allow read: if isAuthenticated();
+      
+      // Users can only upload to their own folder
+      // File size limit: 5MB
+      // Allowed types: Images only
+      allow write: if isOwner(userId) && 
+                      request.resource.size < 5 * 1024 * 1024 &&
+                      request.resource.contentType.matches('image/.*');
+      
+      // Users can delete their own profile images
+      allow delete: if isOwner(userId);
+    }
+    
+    // ==========================================================================
+    // Clinical Documents (Optional) - Clinician uploaded documents
+    // ==========================================================================
+    // Path format: clinical_documents/{clinicianId}/{patientId}/{fileName}
+    match /clinical_documents/{clinicianId}/{patientId}/{fileName} {
+      // Clinician and patient can read
+      allow read: if isOwner(clinicianId) || isOwner(patientId) || isClinician() || isDoctor();
+      
+      // Only the clinician can upload/update
+      allow write: if isOwner(clinicianId) && (isClinician() || isDoctor()) &&
+                      request.resource.size < 10 * 1024 * 1024;
+      
+      // Only the clinician can delete
+      allow delete: if isOwner(clinicianId);
+    }
+    
+    // ==========================================================================
+    // Default Deny All - Security by Default
+    // ==========================================================================
+    // Deny access to all other paths not explicitly defined
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

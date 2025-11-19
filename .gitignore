@@ -16,6 +16,13 @@ venv/
 .mypy_cache/
 .coverage
 
+# Firebase Secrets - NEVER COMMIT
+firebase-service-account.json
+*-service-account.json
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+
 # OS
 .DS_Store
 
