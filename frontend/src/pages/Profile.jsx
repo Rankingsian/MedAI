@@ -143,7 +143,7 @@ export default function Profile() {
                     onChange={(e) => setProfile({ ...profile, address: e.target.value })}
                     disabled={!editing}
                     placeholder="Enter your address"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 resize-none"
                     rows="3"
                   />
                 </div>
@@ -184,7 +184,7 @@ export default function Profile() {
                     onChange={(e) => setProfile({ ...profile, allergies: e.target.value })}
                     disabled={!editing}
                     placeholder="List any allergies (e.g., peanuts, penicillin)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 resize-none"
                     rows="3"
                   />
                 </div>

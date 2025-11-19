@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Stethoscope, Mail, Lock, User, Award, FileText, ArrowLeft } from 'lucide-react'
-import { auth } from '../config/firebase'
+import { auth, db } from '../config/firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { api } from '../api/client'
 
 export default function ClinicianAuth() {
@@ -29,30 +30,44 @@ export default function ClinicianAuth() {
         // Login existing clinician
         const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password)
         
-        // Check if user has clinician role
+        // Check if user document has clinician role
         try {
-          await api.get(`/clinician/profile/${userCredential.user.uid}`)
-          navigate('/clinician/dashboard')
+          const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid))
+          if (userDoc.exists() && userDoc.data().role === 'clinician') {
+            navigate('/clinician/dashboard')
+          } else {
+            setError('No clinician profile found. Please sign up as a clinician first.')
+            await auth.signOut()
+          }
         } catch (err) {
-          setError('No clinician profile found. Please sign up as a clinician first.')
+          setError('Error verifying clinician profile.')
           await auth.signOut()
         }
       } else {
         // Create new clinician account
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
         
+        // Create user document with clinician role in Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          email: formData.email,
+          name: formData.name,
+          role: 'clinician',
+          createdAt: new Date().toISOString(),
+          profileComplete: false
+        })
+        
         // Create clinician profile in backend
         await api.post(`/clinician/profile`, {
           clinician_id: userCredential.user.uid,
           email: formData.email,
-          password: formData.password,
           name: formData.name,
           specialization: formData.specialization,
           license_number: formData.licenseNumber
         })
         
-        // Navigate to clinician dashboard
-        navigate('/clinician/dashboard')
+        // Redirect to settings to complete profile
+        navigate('/clinician/settings')
       }
     } catch (err) {
       console.error('Auth error:', err)

@@ -6,6 +6,11 @@ textarea,
 select {
   font-family: inherit;
   background-color: #ffffff;
+  /* Force white background and dark text for textareas to avoid accidental dark themes/styles
+     overriding the intended light input appearance. Use !important to override component-level
+     inline styles or utility classes if necessary. */
+  background-color: #ffffff !important;
+  color: #0f172a !important; /* Tailwind's gray-900 / very dark text */
 }
 
 :root {

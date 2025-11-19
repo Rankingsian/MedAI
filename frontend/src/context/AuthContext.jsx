@@ -21,16 +21,19 @@ export function AuthProvider({ children }) {
   const [userRole, setUserRole] = useState(null)
   const [profileComplete, setProfileComplete] = useState(true) // Default to true for non-clinicians
 
-  async function signup(email, password, name, role = 'patient') {
+  async function signup(email, password, name, role = 'patient', extraData = {}) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-    await updateProfile(userCredential.user, { displayName: name })
+    if (name) {
+      await updateProfile(userCredential.user, { displayName: name })
+    }
     
     await setDoc(doc(db, 'users', userCredential.user.uid), {
       uid: userCredential.user.uid,
       email: email,
       name: name,
       role: role,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ...extraData
     })
     
     return userCredential

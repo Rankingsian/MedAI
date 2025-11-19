@@ -150,7 +150,7 @@ export default function Triage() {
                     value={form.symptoms}
                     onChange={onChange}
                     placeholder="Describe your symptoms in detail..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent h-32 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 focus:border-transparent h-32 resize-none"
                     required
                   />
                 </div>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import { User, Award, FileText, Check } from 'lucide-react';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 export default function ClinicianSettings() {
   const { user } = useAuth();
@@ -55,6 +57,11 @@ export default function ClinicianSettings() {
         specialization: formData.specialization,
         license_number: formData.licenseNumber
       });
+
+      // Update profileComplete status in users collection
+      await setDoc(doc(db, 'users', user.uid), {
+        profileComplete: true
+      }, { merge: true });
 
       setSuccess('Profile updated successfully');
       setTimeout(() => navigate('/clinician/dashboard'), 2000);

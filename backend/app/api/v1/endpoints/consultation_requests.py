@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
+from threading import Lock
+from uuid import uuid4
 
 from app.api.v1.schemas.consultation_request import (
     ConsultationRequestCreate,
@@ -16,8 +18,25 @@ router = APIRouter(tags=["consultation-requests"])
 
 def _serialize_request(doc) -> ConsultationRequestResponse:
     data = doc.to_dict()
+    return _serialize_request_from_data(doc.id, data)
+
+
+def _serialize_request_from_data(request_id: str, data: Dict) -> ConsultationRequestResponse:
+    created_at = data.get("created_at") or datetime.utcnow()
+    updated_at = data.get("updated_at") or created_at
+
+    if isinstance(created_at, datetime):
+        created_at_iso = created_at.isoformat()
+    else:
+        created_at_iso = str(created_at)
+
+    if isinstance(updated_at, datetime):
+        updated_at_iso = updated_at.isoformat()
+    else:
+        updated_at_iso = str(updated_at)
+
     return ConsultationRequestResponse(
-        request_id=doc.id,
+        request_id=request_id,
         user_id=data.get("user_id", ""),
         clinician_id=data.get("clinician_id"),
         consultation_id=data.get("consultation_id"),
@@ -25,17 +44,19 @@ def _serialize_request(doc) -> ConsultationRequestResponse:
         details=data.get("details"),
         urgency=data.get("urgency", "medium"),
         status=data.get("status", "pending"),
-        created_at=data.get("created_at", datetime.utcnow()).isoformat(),
-        updated_at=data.get("updated_at", datetime.utcnow()).isoformat(),
+        created_at=created_at_iso,
+        updated_at=updated_at_iso,
     )
+
+
+_fallback_requests: Dict[str, Dict] = {}
+_fallback_lock = Lock()
 
 
 @router.post("/consultation/request", response_model=ConsultationRequestResponse)
 async def create_consultation_request(payload: ConsultationRequestCreate):
     """Create a consultation request from a user."""
     db = get_firestore_client()
-    if not db:
-        raise HTTPException(status_code=500, detail="Database not available")
 
     try:
         now = datetime.utcnow()
@@ -50,9 +71,16 @@ async def create_consultation_request(payload: ConsultationRequestCreate):
             "updated_at": now,
         }
 
-        doc_ref = db.collection("consultation_requests").add(data)[0]
-        created_doc = doc_ref.get()
-        return _serialize_request(created_doc)
+        if db:
+            doc_ref = db.collection("consultation_requests").add(data)[0]
+            created_doc = doc_ref.get()
+            return _serialize_request(created_doc)
+
+        # Fallback to in-memory storage when Firestore is unavailable (local dev)
+        with _fallback_lock:
+            request_id = uuid4().hex
+            _fallback_requests[request_id] = data
+        return _serialize_request_from_data(request_id, data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create request: {e}")
 
@@ -61,17 +89,27 @@ async def create_consultation_request(payload: ConsultationRequestCreate):
 async def get_user_requests(user_id: str):
     """Fetch consultation requests created by a user."""
     db = get_firestore_client()
-    if not db:
-        raise HTTPException(status_code=500, detail="Database not available")
 
     try:
-        query = (
-            db.collection("consultation_requests")
-            .where("user_id", "==", user_id)
-            .order_by("created_at", direction="DESCENDING")
-        )
-        docs = query.stream()
-        return [_serialize_request(doc) for doc in docs]
+        if db:
+            query = (
+                db.collection("consultation_requests")
+                .where("user_id", "==", user_id)
+                .order_by("created_at", direction="DESCENDING")
+            )
+            docs = query.stream()
+            return [_serialize_request(doc) for doc in docs]
+
+        with _fallback_lock:
+            requests = [
+                _serialize_request_from_data(request_id, data)
+                for request_id, data in _fallback_requests.items()
+                if data.get("user_id") == user_id
+            ]
+
+        # Sort by created_at descending (ISO strings sort lexicographically when same format)
+        requests.sort(key=lambda r: r.created_at, reverse=True)
+        return requests
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch requests: {e}")
 

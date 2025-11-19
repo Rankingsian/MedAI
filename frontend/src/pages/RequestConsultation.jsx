@@ -183,7 +183,7 @@ export default function RequestConsultation() {
                   onChange={handleChange}
                   placeholder="Add any relevant history, medications, or questions for the doctor"
                   rows={4}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 bg-white focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   maxLength={1000}
                 />
               </div>
