@@ -9,6 +9,14 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api/client'
 
+// Status color mappings for consultation requests
+const statusColors = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  assigned: 'bg-blue-100 text-blue-800',
+  in_progress: 'bg-purple-100 text-purple-800',
+  completed: 'bg-green-100 text-green-800',
+}
+
 export default function ClinicianDashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
