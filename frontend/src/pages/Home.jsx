@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  Stethoscope, 
-  History, 
-  User, 
-  HelpCircle, 
+import {
+  Stethoscope,
+  History,
+  User,
+  HelpCircle,
   LogOut,
   Activity,
   FileText,
   Settings,
   ChevronRight,
   Calendar,
-  Clock
+  Clock,
+  UserCheck
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -154,7 +155,7 @@ export default function Home() {
           </motion.div>
 
           {/* Quick Actions Grid */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
           >
@@ -274,8 +275,8 @@ export default function Home() {
                 <Clock className="w-6 h-6 text-blue-600" />
                 Recent Consultations
               </h2>
-              <Link 
-                to="/history" 
+              <Link
+                to="/history"
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
               >
                 View All
@@ -334,7 +335,7 @@ export default function Home() {
           </motion.div>
 
           {/* Quick Tips Banner */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl p-6 text-white"
           >
@@ -345,7 +346,7 @@ export default function Home() {
               <div>
                 <h3 className="font-bold text-lg mb-2">Health Tip of the Day</h3>
                 <p className="text-blue-50">
-                  Stay hydrated! Drinking adequate water helps maintain your body's vital functions 
+                  Stay hydrated! Drinking adequate water helps maintain your body's vital functions
                   and can improve overall health. Aim for 8 glasses a day.
                 </p>
               </div>
