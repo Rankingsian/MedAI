@@ -370,7 +370,7 @@ async def summarize_lab_text(parsed_text: str) -> dict:
     """Run de-id, optional NER, then generate a plain-language summary of lab findings."""
     deid_text = deid_utils.deidentify(parsed_text)
     
-    # attempt to extract medications/entities using med7 if available
+    #attempt to extract medications/entities using med7 if available
     entities = []
     try:
         import spacy
@@ -382,8 +382,14 @@ async def summarize_lab_text(parsed_text: str) -> dict:
             doc = nlp(deid_text)
             for ent in doc.ents:
                 entities.append({"text": ent.text, "label": ent.label_})
-    except Exception:
+    except ImportError:
+        # spaCy not installed - skip NER extraction
+        log.debug("spaCy not available, skipping entity extraction")
         entities = []
+    except Exception as e:
+        log.debug(f"Entity extraction failed: {e}")
+        entities = []
+
 
     # Try Groq first for lab interpretation, then fall back to templates
     try:

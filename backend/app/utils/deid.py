@@ -26,8 +26,11 @@ class Deidentifier:
                 self.model = AutoModelForTokenClassification.from_pretrained("obi/deid_bert_i2b2")
                 self.pipe = pipeline("ner", model=self.model, tokenizer=self.tokenizer, aggregation_strategy="simple")
                 self._use_hf = True
-            except Exception:
+            except Exception as e:
+                # Model not available - will use regex fallback
                 self._use_hf = False
+        # Note: If transformers not installed, uses regex-based de-identification
+
 
     def deidentify(self, text: str) -> str:
         if not text:
