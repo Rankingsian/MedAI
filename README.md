@@ -242,7 +242,7 @@ Once the backend is running, visit:
       <img src="https://via.placeholder.com/100" width="100px;" alt="Ian Mwangi"/><br />
       <sub><b>Ian Mwangi</b></sub><br />
       <sub>AI Engineer</sub><br />
-      <a href="https://github.com/ianmwangi">GitHub</a>
+      <a href="https://github.com/Rankingsian">GitHub</a>
     </td>
     <td align="center">
       <img src="https://via.placeholder.com/100" width="100px;" alt="Margret Mwangi"/><br />
