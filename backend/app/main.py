@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     clinician,
     consultation_requests,
     video_calls,
+    health,
 )
 
 app = FastAPI(title="MedAI API")
@@ -44,6 +45,7 @@ app.include_router(history.router, prefix="/api")
 app.include_router(clinician.router, prefix="/api")
 app.include_router(consultation_requests.router, prefix="/api")
 app.include_router(video_calls.router, prefix="/api")
+app.include_router(health.router, prefix="/api")
 
 @app.get("/")
 def health():

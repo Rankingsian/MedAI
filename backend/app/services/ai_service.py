@@ -18,17 +18,30 @@ except Exception:
 
 # Groq AI integration - load after settings to get .env variables
 groq_client = None
+groq_initialization_error = None
 try:
     from groq import Groq
     # Try environment variable first, then settings (which loads .env)
     groq_api_key = os.getenv("GROQ_API_KEY") or (getattr(settings, "GROQ_API_KEY", None) if settings is not None else None) or ""
-    if groq_api_key and groq_api_key != "your_groq_api_key_here":
-        groq_client = Groq(api_key=groq_api_key)
-        log.info("✅ Groq AI initialized successfully")
+    
+    if not groq_api_key or groq_api_key == "your_groq_api_key_here":
+        groq_initialization_error = "Groq API key not configured"
+        log.warning("⚠️  GROQ_API_KEY not found or is placeholder value")
+        log.info("ℹ️  AI bot will use template-based responses (limited functionality)")
+        log.info("ℹ️  To enable Groq AI: Set GROQ_API_KEY environment variable")
+        log.info("ℹ️  Get your free API key at: https://console.groq.com/keys")
     else:
-        log.info("ℹ️  Groq API key not found, using template system")
+        groq_client = Groq(api_key=groq_api_key)
+        log.info("✅ Groq AI initialized successfully with Llama 3.3-70b")
+        log.info("ℹ️  AI bot will provide high-quality AI-powered responses")
+except ImportError as e:
+    groq_initialization_error = f"Groq library not installed: {e}"
+    log.error(f"❌ Failed to import Groq library: {e}")
+    log.info("ℹ️  Install with: pip install groq")
 except Exception as e:
-    log.warning(f"⚠️  Failed to initialize Groq: {e}, using template system")
+    groq_initialization_error = f"Groq initialization failed: {str(e)}"
+    log.error(f"❌ Failed to initialize Groq: {e}")
+    log.info("ℹ️  AI bot will use template-based responses")
 
 # Hugging Face Inference API Configuration
 # Updated to new Inference Providers API (November 2025)
@@ -189,9 +202,11 @@ async def query_biogpt(text: str) -> Dict[str, Any]:
 
 
 async def query_groq_llama(prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
-    """Query Groq's Llama 3.1 70B model for intelligent medical responses."""
+    """Query Groq's Llama 3.3 70B model for intelligent medical responses."""
     if not groq_client:
-        raise Exception("Groq client not initialized")
+        error_msg = groq_initialization_error or "Groq client not initialized"
+        log.warning(f"Groq not available: {error_msg}")
+        raise Exception(f"Groq AI unavailable: {error_msg}")
     
     if system_prompt is None:
         system_prompt = (
@@ -201,6 +216,7 @@ async def query_groq_llama(prompt: str, system_prompt: Optional[str] = None) -> 
         )
     
     try:
+        log.debug(f"Querying Groq with prompt length: {len(prompt)}")
         # Updated to use llama-3.3-70b-versatile (latest stable model)
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -214,16 +230,33 @@ async def query_groq_llama(prompt: str, system_prompt: Optional[str] = None) -> 
         )
         
         output_text = response.choices[0].message.content
+        log.info(f"✅ Groq response received (length: {len(output_text)})")
         
         return {
-            "model": "Llama 3.1 70B (Groq)",
+            "model": "Llama 3.3 70B (Groq)",
             "input": prompt,
             "output": output_text,
             "confidence": 0.9  # High confidence for Groq/Llama
         }
     except Exception as e:
-        log.error(f"Groq API error: {e}")
-        raise
+        error_type = type(e).__name__
+        error_msg = str(e)
+        
+        # Check for specific error types
+        if "authentication" in error_msg.lower() or "api key" in error_msg.lower() or "401" in error_msg:
+            log.error(f"❌ Groq Authentication Error: Invalid API key")
+            log.error(f"ℹ️  Please verify GROQ_API_KEY is set correctly in environment variables")
+            raise Exception("Groq authentication failed - check API key")
+        elif "rate limit" in error_msg.lower() or "429" in error_msg:
+            log.error(f"❌ Groq Rate Limit: Too many requests")
+            log.error(f"ℹ️  Free tier: 14,400 requests/day. Consider upgrading or waiting.")
+            raise Exception("Groq rate limit exceeded")
+        elif "timeout" in error_msg.lower() or "connection" in error_msg.lower():
+            log.error(f"❌ Groq Network Error: {error_msg}")
+            raise Exception(f"Groq network error: {error_msg}")
+        else:
+            log.error(f"❌ Groq API error ({error_type}): {error_msg}")
+            raise Exception(f"Groq API error: {error_msg}")
 
 
 def _generate_template_response(text: str) -> Dict[str, Any]:

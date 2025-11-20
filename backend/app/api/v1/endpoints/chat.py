@@ -12,6 +12,7 @@ router = APIRouter(tags=["chat"])
 async def chat_endpoint(payload: ChatRequest):
     if not payload or not payload.message:
         raise HTTPException(status_code=400, detail="Message required")
+    
     try:
         # Process AI response
         out = await ai_service.process_chat(
@@ -58,12 +59,36 @@ async def chat_endpoint(payload: ChatRequest):
                     }, merge=True)
             except Exception as e:
                 # Log error but don't fail the request
-                print(f"Failed to save chat history: {e}")
+                print(f"⚠️  Failed to save chat history to Firestore: {e}")
         
         return ChatResponse(
             reply=out.get("reply", ""), 
             ai_recommend_doctor=out.get("ai_recommend_doctor", False), 
             confidence=out.get("confidence", 0.0)
         )
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        print(f"❌ Chat endpoint error: {error_msg}")
+        
+        # Provide user-friendly error messages
+        if "Groq authentication" in error_msg or "API key" in error_msg:
+            raise HTTPException(
+                status_code=503, 
+                detail="AI service temporarily unavailable due to configuration issue. Please try again later or contact support."
+            )
+        elif "rate limit" in error_msg:
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is currently at capacity. Please try again in a few moments."
+            )
+        elif "network" in error_msg or "timeout" in error_msg:
+            raise HTTPException(
+                status_code=503,
+                detail="AI service temporarily unavailable due to network issues. Please try again."
+            )
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"An error occurred processing your request. Please try again. If the issue persists, contact support."
+            )
